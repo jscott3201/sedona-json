@@ -1,0 +1,70 @@
+**
+** JsonWeblet is a JSON API Weblet for Sedona
+**
+class JsonWeblet
+  extends Weblet
+{
+
+////////////////////////////////////////////////////////////////
+// Weblet Registration
+////////////////////////////////////////////////////////////////
+
+  static void _sInit()
+  {
+    json.register()
+  }
+  static internal inline JsonWeblet json
+
+////////////////////////////////////////////////////////////////
+// Weblet
+////////////////////////////////////////////////////////////////
+
+  override Str prefix() { return "json" }
+  
+  override Str description() { return "JSON API" }
+
+  override void get(WebReq req, WebRes res)
+  {
+    // route to non-html pages
+    Str p = ""
+    if (req.path.size > 1) p = req.path.names[1]
+
+    // start header
+    res.json()
+    // route to json api routes
+    if (p.equals("app")) app(req, res)
+    // standard footer
+    res.jsonEnd()
+  }
+
+////////////////////////////////////////////////////////////////
+// App
+////////////////////////////////////////////////////////////////
+
+  void app(WebReq req, WebRes res)
+  {
+    App app = Sys.app
+	foreach (Component object : app.comps, app.compsLen)
+	{
+		Type t = object.type
+		res.w("\"address").wi(object.id).w("\": {")
+		foreach (Slot slot : t.slots, t.slotsLen)
+		{
+        res.w("\"slot").wi(slot.id).w("\": {")
+        if (slot.isProp())
+        {
+        res.w("\"value\": \"").printProp(object, slot).w("\"")
+        }
+        else
+        {
+        res.w("\"value\": \"null\"")
+        }
+        res.w("},")
+        }
+		res.w("\"slotEnd\": {\"end\":\"end\"}},")
+	}
+	res.w("\"end\":\"end\"")
+  }
+
+
+}
